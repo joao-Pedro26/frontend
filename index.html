@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PetShop — Cadastro de Animais</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🐾</text></svg>">
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+  <!-- ============ CABEÇALHO ============ -->
+  <header class="topbar">
+    <div class="brand">
+      <span class="brand-icon" aria-hidden="true">🐾</span>
+      <div>
+        <h1>PetShop</h1>
+        <p>Cadastro de Animais</p>
+      </div>
+    </div>
+
+    <div class="backend-config">
+      <label for="api-url">API</label>
+      <input id="api-url" type="url" spellcheck="false">
+      <button id="btn-salvar-url" class="btn btn-ghost btn-sm" type="button">Conectar</button>
+      <span id="status-backend" class="status status-checking" title="Status do backend">verificando…</span>
+    </div>
+  </header>
+
+  <main class="layout">
+
+    <!-- ============ FORMULÁRIO (POST / PUT) ============ -->
+    <section class="card" aria-labelledby="titulo-form">
+      <div class="card-header">
+        <h2 id="titulo-form">Cadastrar animal</h2>
+        <span id="badge-verbo-form" class="method method-POST">POST</span>
+      </div>
+
+      <form id="form-animal" novalidate>
+        <input type="hidden" id="animal-id">
+
+        <div class="field">
+          <label for="nome">Nome *</label>
+          <input id="nome" name="nome" type="text" maxlength="100" placeholder="Ex.: Rex" required>
+        </div>
+
+        <div class="field-row">
+          <div class="field">
+            <label for="especie">Espécie *</label>
+            <select id="especie" name="especie" required>
+              <option value="">Selecione…</option>
+              <option>Cachorro</option>
+              <option>Gato</option>
+              <option>Pássaro</option>
+              <option>Roedor</option>
+              <option>Peixe</option>
+              <option>Réptil</option>
+              <option>Outro</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="raca">Raça</label>
+            <input id="raca" name="raca" type="text" maxlength="100" placeholder="Ex.: Labrador">
+          </div>
+        </div>
+
+        <div class="field-row">
+          <div class="field">
+            <label for="idade">Idade (anos) *</label>
+            <input id="idade" name="idade" type="number" min="0" max="100" step="1" placeholder="3" required>
+          </div>
+          <div class="field">
+            <label for="peso">Peso (kg) *</label>
+            <input id="peso" name="peso" type="text" inputmode="decimal" placeholder="25,5" required>
+          </div>
+        </div>
+
+        <fieldset class="field">
+          <legend>Sexo *</legend>
+          <div class="radio-group">
+            <label class="radio"><input type="radio" name="sexo" value="M" required> ♂ Macho</label>
+            <label class="radio"><input type="radio" name="sexo" value="F"> ♀ Fêmea</label>
+          </div>
+        </fieldset>
+
+        <p id="erro-form" class="form-error" role="alert"></p>
+
+        <div class="form-actions">
+          <button id="btn-cancelar-edicao" class="btn btn-ghost" type="button" hidden>Cancelar edição</button>
+          <button id="btn-salvar" class="btn btn-primary" type="submit">Cadastrar</button>
+        </div>
+      </form>
+
+      <!-- Excluir por nome: DELETE /api/animais/nome/{nome} -->
+      <div class="danger-zone">
+        <h3>Zona de perigo</h3>
+        <p>Remove <strong>todos</strong> os animais com o nome exato informado.</p>
+        <form id="form-excluir-nome" class="inline-form">
+          <label for="excluir-nome" class="sr-only">Nome para excluir</label>
+          <input id="excluir-nome" type="text" placeholder="Nome exato" required>
+          <button class="btn btn-danger" type="submit">Excluir por nome</button>
+        </form>
+      </div>
+    </section>
+
+    <!-- ============ LISTAGEM / BUSCA (GET / DELETE) ============ -->
+    <section class="card" aria-labelledby="titulo-lista">
+      <div class="card-header">
+        <h2 id="titulo-lista">Animais cadastrados</h2>
+        <button id="btn-recarregar" class="btn btn-ghost btn-sm" type="button">↻ Atualizar lista</button>
+      </div>
+
+      <div class="search-bar">
+        <form id="form-busca-id" class="inline-form">
+          <label for="busca-id" class="sr-only">Buscar por ID</label>
+          <input id="busca-id" type="number" min="1" placeholder="Buscar por ID" required>
+          <button class="btn btn-secondary" type="submit">Buscar ID</button>
+        </form>
+        <form id="form-busca-nome" class="inline-form">
+          <label for="busca-nome" class="sr-only">Buscar por nome</label>
+          <input id="busca-nome" type="text" placeholder="Buscar por nome exato" required>
+          <button class="btn btn-secondary" type="submit">Buscar nome</button>
+        </form>
+      </div>
+
+      <div id="filtro-ativo" class="filter-info" hidden>
+        <span id="filtro-texto"></span>
+        <button id="btn-limpar-filtro" class="btn btn-link" type="button">Limpar filtro</button>
+      </div>
+
+      <div class="table-wrap">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>ID</th><th>Nome</th><th>Espécie</th><th>Raça</th>
+              <th>Idade</th><th>Peso</th><th>Sexo</th><th class="col-acoes">Ações</th>
+            </tr>
+          </thead>
+          <tbody id="tabela-animais"></tbody>
+        </table>
+        <p id="estado-tabela" class="table-state"></p>
+      </div>
+      <p id="contador" class="counter"></p>
+    </section>
+
+    <!-- ============ PAINEL DE REQUISIÇÕES HTTP ============ -->
+    <section class="card card-full" aria-labelledby="titulo-log">
+      <div class="card-header">
+        <h2 id="titulo-log">Requisições HTTP <small>(frontend → backend)</small></h2>
+        <button id="btn-limpar-log" class="btn btn-ghost btn-sm" type="button">Limpar</button>
+      </div>
+      <ol id="log-requisicoes" class="http-log" reversed></ol>
+      <p id="log-vazio" class="table-state">Nenhuma requisição ainda.</p>
+    </section>
+  </main>
+
+  <!-- ============ MODAL DE CONFIRMAÇÃO ============ -->
+  <div id="modal" class="modal-backdrop" hidden>
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-titulo">
+      <h3 id="modal-titulo">Confirmar</h3>
+      <p id="modal-mensagem"></p>
+      <code id="modal-requisicao" class="modal-request"></code>
+      <div class="form-actions">
+        <button id="modal-cancelar" class="btn btn-ghost" type="button">Cancelar</button>
+        <button id="modal-confirmar" class="btn btn-danger" type="button">Excluir</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ NOTIFICAÇÕES (TOAST) ============ -->
+  <div id="toasts" class="toasts" aria-live="polite"></div>
+
+  <!-- api.js precisa vir antes de app.js, pois app.js usa as funções dele -->
+  <script src="js/api.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
